@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">JohnDownloadFrame</string>
+    <string name="current_progress">当前进程%1$s</string>
+</resources>
