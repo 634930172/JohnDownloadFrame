@@ -1,11 +1,11 @@
-package com.john.johndownloadframe.network.converter;
+package com.john.breakpoint.network.converter;
 
 import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.google.gson.Gson;
-import com.john.johndownloadframe.network.HttpResult;
-import com.john.johndownloadframe.network.ResponseParams;
+import com.john.breakpoint.network.HttpResult;
+import com.john.breakpoint.network.ResponseParams;
 
 
 import org.json.JSONException;

@@ -1,6 +1,6 @@
-package com.john.johndownloadframe.network.download;
-import com.john.johndownloadframe.network.BaseConfig;
-import com.john.johndownloadframe.network.converter.HttpCovertFactory;
+package com.john.breakpoint.network.download;
+import com.john.breakpoint.network.BaseConfig;
+import com.john.breakpoint.network.converter.HttpCovertFactory;
 
 import java.util.concurrent.TimeUnit;
 

@@ -1,4 +1,9 @@
 <resources>
     <string name="app_name">JohnDownloadFrame</string>
-    <string name="current_progress">当前进程%1$s</string>
+    <string name="current_progress">loading->%1$s|%2$s|%3$s</string>
+    <string name="download_success">下载完成</string>
+    <string name="downloading">%1$s正在下载</string>
+    <string name="downloaded">%1$s已经下载完成</string>
+    <string name="many_download_end">多任务下载完成</string>
+    <string name="many_downloading">正在下载%1$s|%2$d|%3$d</string>
 </resources>

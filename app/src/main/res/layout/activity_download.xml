@@ -14,16 +14,70 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:onClick="startDownload"
-            android:text="开始下载" />
+            android:text="开始单任务" />
 
         <Button
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:onClick="stopDownload"
-            android:text="暂停" />
+            android:text="暂停单任务" />
+
     </LinearLayout>
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <Button
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:onClick="startManyDownload"
+            android:text="开始多任务" />
+
+        <Button
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:onClick="stopManyDownload"
+            android:text="暂停多任务" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <Button
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:onClick="startListDownload"
+            android:text="开始列表任务" />
+
+        <Button
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:onClick="stopListDownload"
+            android:text="暂停列表任务" />
+
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/progress_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center" />
+
+    <TextView
+        android:id="@+id/current_progress"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center" />
 
     <ListView
         android:id="@+id/download_listView"

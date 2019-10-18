@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Breakpoint</string>
+    <string name="downloaded">%1$s已经下载完成</string>
+</resources>

@@ -1,4 +1,4 @@
-package com.john.johndownloadframe.network;
+package com.john.breakpoint.network;
 
 import com.google.gson.JsonObject;
 import java.util.Map;
@@ -8,6 +8,7 @@ import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
 
 import retrofit2.http.GET;
+import retrofit2.http.Header;
 import retrofit2.http.Multipart;
 import retrofit2.http.POST;
 import retrofit2.http.PartMap;
@@ -37,7 +38,7 @@ public interface AppService {
     //文件下载
     @Streaming
     @GET
-    Observable<ResponseBody> download(@Url String url);
+    Observable<ResponseBody> download(@Header ("Range") String start,@Url String url);
 
 
 

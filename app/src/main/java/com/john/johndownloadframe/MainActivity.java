@@ -5,8 +5,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 
-import com.john.johndownloadframe.network.MainConfig;
-
 public class MainActivity extends AppCompatActivity {
 
     @Override
@@ -15,13 +13,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
     }
 
-
     public void download(View view) {
         Intent intent=new Intent(this,DownloadActivity.class);
-        MainConfig config=new MainConfig();
-        config.setName("mike");
-        config.setAge("18");
-        intent.putExtra("config",config);
         startActivity(intent);
     }
 
