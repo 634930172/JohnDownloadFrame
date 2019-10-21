@@ -58,6 +58,13 @@ public class DBDownloadInfo {
     @Property(nameInDb = "download_description")
     private String downloadDescription;
 
+
+    /**
+     * 文件的md5值 用于校验
+     */
+    @Property(nameInDb = "file_md5_string")
+    private String fileMd5String;
+
     /**
      * 是否下载完成
      * 0表示未完成 1表示已完成
@@ -65,10 +72,10 @@ public class DBDownloadInfo {
     @Property(nameInDb = "is_downloaded")
     private int isDownloaded;
 
-    @Generated(hash = 1365737221)
+    @Generated(hash = 248386684)
     public DBDownloadInfo(Long downloadId, String downloadUrl, long readLength,
             String savePathDir, String fileName, long totalLength,
-            String downloadDescription, int isDownloaded) {
+            String downloadDescription, String fileMd5String, int isDownloaded) {
         this.downloadId = downloadId;
         this.downloadUrl = downloadUrl;
         this.readLength = readLength;
@@ -76,6 +83,7 @@ public class DBDownloadInfo {
         this.fileName = fileName;
         this.totalLength = totalLength;
         this.downloadDescription = downloadDescription;
+        this.fileMd5String = fileMd5String;
         this.isDownloaded = isDownloaded;
     }
 
@@ -137,6 +145,14 @@ public class DBDownloadInfo {
 
     public void setDownloadDescription(String downloadDescription) {
         this.downloadDescription = downloadDescription;
+    }
+
+    public String getFileMd5String() {
+        return this.fileMd5String;
+    }
+
+    public void setFileMd5String(String fileMd5String) {
+        this.fileMd5String = fileMd5String;
     }
 
     public int getIsDownloaded() {
