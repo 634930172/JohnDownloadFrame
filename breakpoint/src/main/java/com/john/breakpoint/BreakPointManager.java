@@ -1,6 +1,7 @@
 package com.john.breakpoint;
 
 import android.app.Activity;
+import android.os.Looper;
 import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Toast;
@@ -16,6 +17,7 @@ import com.john.breakpoint.network.download.DownloadInfo;
 import com.john.breakpoint.network.download.DownloadListStateListener;
 import com.john.breakpoint.network.download.DownloadObserver;
 import com.john.breakpoint.network.download.DownloadStateListener;
+import com.john.breakpoint.network.download.DownloadTask;
 import com.trello.rxlifecycle2.android.ActivityEvent;
 import com.trello.rxlifecycle2.components.support.RxAppCompatActivity;
 
@@ -32,9 +34,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Consumer;
+import io.reactivex.observers.DisposableObserver;
 import io.reactivex.schedulers.Schedulers;
 import okhttp3.ResponseBody;
 
@@ -53,6 +59,10 @@ public class BreakPointManager {
     private DBDownloadInfoDao downloadInfoDao;
     private HashMap<String, DownloadObserver> observerHashMap;
     private List<String> descriptionList;
+    /**
+     * 执行线程数
+     */
+    private static final int RUN_THREAD = 5;
 
     private BreakPointManager() {
         downloadInfoDao = GreenDaoManager.getDaoSession().getDBDownloadInfoDao();
@@ -75,14 +85,14 @@ public class BreakPointManager {
     }
 
 
-    public void download(final RxAppCompatActivity activity, DownloadInfo preDownloadInfo, final DownloadStateListener downloadListenner){
-        download(activity,preDownloadInfo,downloadListenner,false);
+    public void download(final RxAppCompatActivity activity, DownloadInfo preDownloadInfo, final DownloadStateListener downloadListenner) {
+        download(activity, preDownloadInfo, downloadListenner, false);
     }
 
     /**
      * 文件下载
      */
-    private void download(final RxAppCompatActivity activity, DownloadInfo preDownloadInfo, final DownloadStateListener downloadStateListener,boolean isDownloadList) {
+    private void download(final RxAppCompatActivity activity, DownloadInfo preDownloadInfo, final DownloadStateListener downloadStateListener, boolean isDownloadList) {
         if (preDownloadInfo == null) {
             throw new RuntimeException("preDownloadInfo is empty , you must set");
         }
@@ -103,7 +113,7 @@ public class BreakPointManager {
 
         //是否正在下载
         if (observerHashMap.containsKey(downloadDescription)) {
-            Log.e(TAG, "download: DownloadObserver is downloading ------>"+downloadDescription);
+            Log.e(TAG, "download: DownloadObserver is downloading ------>" + downloadDescription);
             return;
         }
 
@@ -127,6 +137,9 @@ public class BreakPointManager {
                     .where(DBDownloadInfoDao.Properties.DownloadDescription
                             .eq(downloadDescription))
                     .build().unique();
+            Log.e(TAG, "download: first download");
+            dealFirstDownload(realDownloadInfo,downloadInfoDao);
+            return;
         }
         //对将要下载的文件做校验
         if (realDownloadInfo.getIsDownloaded() == 1) {
@@ -159,7 +172,23 @@ public class BreakPointManager {
                 //成功后更新数据库的值
                 realDownloadInfo.setIsDownloaded(1);
                 downloadInfoDao.update(realDownloadInfo);
-                cancelDownload(realDownloadInfo);
+//                cancelDownload(realDownloadInfo);
+                Log.e(TAG, "onDownloadSuccess: --------->" );
+                ExecutorService executorService = Executors.newCachedThreadPool();
+                long total=responseBody.contentLength();
+                long average = total / RUN_THREAD;
+                long start ;
+                long end ;
+                for (int i = 0; i < RUN_THREAD; i++) {
+                    start = i * (average + 1);
+                    end = start + average;
+                    if (i == RUN_THREAD - 1) {
+                        end = total;
+                    }
+//                    DownloadTask task = new DownloadTask(start,end,realDownloadInfo,responseBody,downloadInfoDao);
+//                    executorService.execute(task);
+                }
+
                 if (downloadStateListener != null) {
                     downloadStateListener.onDownloadSuccess(realDownloadInfo.getDownloadDescription());
                 }
@@ -167,7 +196,7 @@ public class BreakPointManager {
 
             @Override
             public void onDownloadError(String msg) {
-                Log.e(TAG, "onDownloadError: "+msg);
+                Log.e(TAG, "onDownloadError: " + msg);
                 cancelDownload(realDownloadInfo);
                 if (downloadStateListener != null) {
                     downloadStateListener.onDownloadError(msg);
@@ -177,7 +206,7 @@ public class BreakPointManager {
         };
 
         observerHashMap.put(realDownloadInfo.getDownloadDescription(), downloadObserver);
-        if(isDownloadList){
+        if (isDownloadList) {
             descriptionList.add(realDownloadInfo.getDownloadDescription());
         }
         DownLoadClient.getService(AppService.class)
@@ -193,6 +222,60 @@ public class BreakPointManager {
                 .observeOn(AndroidSchedulers.mainThread()) //在主线程中更新ui
                 .compose(activity.<ResponseBody>bindUntilEvent(ActivityEvent.DESTROY))
                 .subscribe(downloadObserver);
+    }
+
+    private void dealFirstDownload(final DBDownloadInfo dbDownloadInfo, final DBDownloadInfoDao dbDownloadInfoDao) {
+        final long startDownloadIndex = dbDownloadInfo.getReadLength();
+        //将头部下载信息传给服务端，让其解析
+        String range = "bytes=" + startDownloadIndex + "-";
+        DownLoadClient.getService(AppService.class)
+                .download(range, dbDownloadInfo.getDownloadUrl())
+                .subscribeOn(Schedulers.io())//请求网络 在调度者的io线程
+                .observeOn(Schedulers.io()) //指定线程保存文件
+                .subscribe(new DisposableObserver<ResponseBody>() {
+                    @Override
+                    public void onNext(ResponseBody responseBody) {
+                        long total=responseBody.contentLength();
+                        Log.e(TAG, "onNext: 下载成功----->"+total+"|"+(Looper.getMainLooper()==Looper.myLooper()));
+                        ExecutorService executorService = Executors.newFixedThreadPool(RUN_THREAD);
+                        long average = total / RUN_THREAD;
+                        long start ;
+                        long end ;
+                        for (int i = 0; i < RUN_THREAD; i++) {
+                            start = i * (average + 1);
+                            end = start + average;
+                            if (i == RUN_THREAD - 1) {
+                                end = total;
+                            }
+
+                            String range = "bytes=" + start + "-"+end;
+                            Log.e(TAG, "onNext: --->"+i +"| "+range);
+                            downloadwithRange(dbDownloadInfo,range,start,end,dbDownloadInfoDao );
+
+//                            try {
+////                                long skip= inputStream.skip(start);
+////                                Log.e(TAG, "skip: "+skip );
+////                                DownloadTask task = new DownloadTask(start,end,dbDownloadInfo,inputStream,downloadInfoDao);
+////                                executorService.execute(task);
+//                            } catch (IOException e) {
+//                                e.printStackTrace();
+//                            }
+
+
+                        }
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+
+                    }
+
+                    @Override
+                    public void onComplete() {
+
+                    }
+                });
+
     }
 
 
@@ -214,7 +297,7 @@ public class BreakPointManager {
             return;
         }
         if (observerHashMap.containsKey(downloadDescription)) {
-            Log.d(TAG, "cancelActual: observerHashMap remove key "+downloadDescription);
+            Log.d(TAG, "cancelActual: observerHashMap remove key " + downloadDescription);
             DownloadObserver downloadObserver = observerHashMap.get(downloadDescription);
             if (downloadObserver != null && !downloadObserver.isDisposed()) {
                 downloadObserver.dispose();
@@ -272,7 +355,7 @@ public class BreakPointManager {
 
     private void saveFile(Activity activity, ResponseBody body, final DBDownloadInfo dbDownloadInfo, DBDownloadInfoDao downloadInfoDao, final DownloadStateListener downloadStateListener) {
         InputStream is = null;
-        byte[] buf = new byte[1024*4];
+        byte[] buf = new byte[1024 * 4];
         int len;
         FileChannel channel = null;
         RandomAccessFile randomAccessFile = null;
@@ -282,12 +365,13 @@ public class BreakPointManager {
             final long total = body.contentLength();
             long readLength = dbDownloadInfo.getReadLength();
             //如果读取的长度是0，则说明本次服务器返回的body是全长的
+            is = body.byteStream();
             if (readLength == 0) {
                 dbDownloadInfo.setTotalLength(total);
                 downloadInfoDao.update(dbDownloadInfo);
-                Log.d(TAG, "saveFile: this download length is " + FileSizeUtil.FormatFileSize(total));
+                Log.d(TAG, "saveFile: this download length is " + FileSizeUtil.FormatFileSize(total) + " |total is " + total);
             }
-            is = body.byteStream();
+            Log.e(TAG, "saveFile: --------------------------------------------->" );
             File dir = new File(dbDownloadInfo.getSavePathDir());
             if (!dir.exists()) {
                 if (!dir.mkdirs()) {
@@ -309,7 +393,7 @@ public class BreakPointManager {
                     @Override
                     public void run() {
                         if (downloadStateListener != null) {
-                            downloadStateListener.onDownloading(dbDownloadInfo.getFileName(),hasReadLen+ finalSum, dbDownloadInfo.getTotalLength());
+                            downloadStateListener.onDownloading(dbDownloadInfo.getFileName(), hasReadLen + finalSum, dbDownloadInfo.getTotalLength());
                         }
                     }
                 });
@@ -361,7 +445,7 @@ public class BreakPointManager {
                 @Override
                 public void onDownloadSuccess(String description) {
                     descriptionList.remove(description);
-                    if(descriptionList.isEmpty()){
+                    if (descriptionList.isEmpty()) {
                         if (downloadListStateListener != null) {
                             downloadListStateListener.onDownloadListSuccess();
                         }
@@ -375,8 +459,91 @@ public class BreakPointManager {
                         downloadListStateListener.onDownloadListError(msg);
                     }
                 }
-            },true);
+            }, true);
         }
     }
+
+    private void  downloadwithRange(final DBDownloadInfo realDownloadInfo, String range, final long start, final long end, final DBDownloadInfoDao dbDownloadInfoDao){
+        DownLoadClient.getService(AppService.class)
+                .download(range, realDownloadInfo.getDownloadUrl())
+                .subscribeOn(Schedulers.io())//请求网络 在调度者的io线程
+                .observeOn(Schedulers.io()) //指定线程保存文件
+                .doOnNext(new Consumer<ResponseBody>() {
+                    @Override
+                    public void accept(ResponseBody responseBody) {
+                        saveFilehh(responseBody,realDownloadInfo,dbDownloadInfoDao,start,end);
+                    }
+                })
+                .observeOn(AndroidSchedulers.mainThread()) //在主线程中更新ui
+                .subscribe(new DisposableObserver<ResponseBody>() {
+                    @Override
+                    public void onNext(ResponseBody responseBody) {
+                        Log.e(TAG, "onNext: "+start+" to "+end+" is end --->" );
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+
+                    }
+
+                    @Override
+                    public void onComplete() {
+
+                    }
+                });
+    }
+
+    private void saveFilehh(ResponseBody body,
+                            final DBDownloadInfo dbDownloadInfo,
+                            DBDownloadInfoDao downloadInfoDao, long start,long end) {
+        long c=System.currentTimeMillis();
+        InputStream is = null;
+        byte[] buf = new byte[1024 * 4];
+        int len;
+        FileChannel channel = null;
+        RandomAccessFile randomAccessFile = null;
+        long sum = 0;
+        final long hasReadLen = dbDownloadInfo.getReadLength();
+        try {
+            is = body.byteStream();
+            File dir = new File(dbDownloadInfo.getSavePathDir());
+            if (!dir.exists()) {
+                if (!dir.mkdirs()) {
+                    Log.e(TAG, "saveFile: dir cannot make");
+                    return;
+                }
+            }
+            File file = new File(dir, dbDownloadInfo.getFileName());
+            Log.d(TAG, "want to save file body len is"+body.contentLength()+"|"+start+"-"+end);
+            randomAccessFile = new RandomAccessFile(file, "rwd");
+            channel = randomAccessFile.getChannel();
+            MappedByteBuffer mappedByteBuffer = channel.map(FileChannel.MapMode.READ_WRITE,
+                    start, end-start);
+            while ((len = is.read(buf)) != -1) {
+                sum += len;
+                mappedByteBuffer.put(buf, 0, len);
+            }
+            Log.d(TAG, "saveFile: file len is " + FileSizeUtil.FormatFileSize(file.length())+"|"+(System.currentTimeMillis()-c));
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            Log.e(TAG, "saveFile: saving Exception , try to save progress :" + (hasReadLen + sum));
+        } finally {
+            try {
+                if (is != null)
+                    is.close();
+                if (channel != null) {
+                    channel.close();
+                }
+                if (randomAccessFile != null) {
+                    randomAccessFile.close();
+                }
+
+            } catch (IOException e) {
+                Log.e("saveFile", e.getMessage());
+            }
+        }
+    }
+
 
 }

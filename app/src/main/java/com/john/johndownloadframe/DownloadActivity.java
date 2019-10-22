@@ -63,9 +63,14 @@ public class DownloadActivity extends RxAppCompatActivity {
         externalFilesDir = getExternalFilesDir(null);
         //一张图片
         downloadInfo = new DownloadInfo();
-        downloadInfo.setFileName("app-download.png");
+//        downloadInfo.setFileName("app-download.png");
+//        downloadInfo.setSavePathDir(externalFilesDir.getAbsolutePath());
+//        downloadInfo.setDownloadUrl("http://94.191.50.122/demo/breakPointDownloadPng");
+
+        downloadInfo.setDownloadUrl("http://94.191.50.122/demo/breakPointDownloadApk");
         downloadInfo.setSavePathDir(externalFilesDir.getAbsolutePath());
-        downloadInfo.setDownloadUrl("http://94.191.50.122/demo/breakPointDownloadPng");
+        downloadInfo.setFileName("app-download.apk");
+
         //加载多任务测试数据apk
         loadDataList();
         //加载列表下载任务测试数据apk
@@ -118,7 +123,7 @@ public class DownloadActivity extends RxAppCompatActivity {
 
             @Override
             public void onDownloadSuccess(String description) {
-                Log.e(TAG, "onDownloadSuccess:  | " + (Looper.myLooper() == Looper.getMainLooper()));
+                Log.e(TAG, "onDownloadSuccess: ");
                 progress_text.setText(getString(R.string.download_success));
             }
 

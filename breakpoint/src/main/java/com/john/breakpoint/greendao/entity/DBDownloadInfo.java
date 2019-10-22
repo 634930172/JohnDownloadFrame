@@ -72,10 +72,19 @@ public class DBDownloadInfo {
     @Property(nameInDb = "is_downloaded")
     private int isDownloaded;
 
-    @Generated(hash = 248386684)
+    /**
+     * 各片段的下载情况 用 - 分开
+     */
+    @Property(nameInDb = "file_part_info")
+    private String partInfo;
+
+
+
+    @Generated(hash = 1574069309)
     public DBDownloadInfo(Long downloadId, String downloadUrl, long readLength,
             String savePathDir, String fileName, long totalLength,
-            String downloadDescription, String fileMd5String, int isDownloaded) {
+            String downloadDescription, String fileMd5String, int isDownloaded,
+            String partInfo) {
         this.downloadId = downloadId;
         this.downloadUrl = downloadUrl;
         this.readLength = readLength;
@@ -85,6 +94,7 @@ public class DBDownloadInfo {
         this.downloadDescription = downloadDescription;
         this.fileMd5String = fileMd5String;
         this.isDownloaded = isDownloaded;
+        this.partInfo = partInfo;
     }
 
     @Generated(hash = 366453647)
@@ -161,6 +171,14 @@ public class DBDownloadInfo {
 
     public void setIsDownloaded(int isDownloaded) {
         this.isDownloaded = isDownloaded;
+    }
+
+    public String getPartInfo() {
+        return this.partInfo;
+    }
+
+    public void setPartInfo(String partInfo) {
+        this.partInfo = partInfo;
     }
 
     
