@@ -1,8 +1,6 @@
 package com.john.breakpoint.network.download;
 
 import android.util.Log;
-
-
 import io.reactivex.observers.DisposableObserver;
 
 
@@ -33,6 +31,7 @@ public abstract class DownloadObserver<T> extends DisposableObserver<T> {
 
     @Override
     public void onError(Throwable e) {
+        e.printStackTrace();
         onDownloadError(e.getMessage());
     }
 
