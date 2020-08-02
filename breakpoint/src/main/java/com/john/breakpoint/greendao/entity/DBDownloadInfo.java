@@ -72,10 +72,24 @@ public class DBDownloadInfo {
     @Property(nameInDb = "is_downloaded")
     private int isDownloaded;
 
-    @Generated(hash = 248386684)
+    /**
+     * 各片段的下载情况 形如
+     * 0-12|12-24|24-30
+     */
+    @Property(nameInDb = "part_info")
+    private String partInfo;
+
+    /**
+     * 线程池数量
+     */
+    @Property(nameInDb = "thread_pool_count")
+    private int threadPoolCount;
+
+    @Generated(hash = 1485215306)
     public DBDownloadInfo(Long downloadId, String downloadUrl, long readLength,
             String savePathDir, String fileName, long totalLength,
-            String downloadDescription, String fileMd5String, int isDownloaded) {
+            String downloadDescription, String fileMd5String, int isDownloaded,
+            String partInfo, int threadPoolCount) {
         this.downloadId = downloadId;
         this.downloadUrl = downloadUrl;
         this.readLength = readLength;
@@ -85,6 +99,8 @@ public class DBDownloadInfo {
         this.downloadDescription = downloadDescription;
         this.fileMd5String = fileMd5String;
         this.isDownloaded = isDownloaded;
+        this.partInfo = partInfo;
+        this.threadPoolCount = threadPoolCount;
     }
 
     @Generated(hash = 366453647)
@@ -163,6 +179,22 @@ public class DBDownloadInfo {
         this.isDownloaded = isDownloaded;
     }
 
-    
+    public String getPartInfo() {
+        return this.partInfo;
+    }
+
+    public void setPartInfo(String partInfo) {
+        this.partInfo = partInfo;
+    }
+
+    public int getThreadPoolCount() {
+        return this.threadPoolCount;
+    }
+
+    public void setThreadPoolCount(int threadPoolCount) {
+        this.threadPoolCount = threadPoolCount;
+    }
+
+
 
 }

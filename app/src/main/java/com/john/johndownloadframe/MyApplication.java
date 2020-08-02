@@ -2,6 +2,7 @@ package com.john.johndownloadframe;
 
 import android.app.Application;
 import com.john.breakpoint.greendao.helper.GreenDaoManager;
+import com.tencent.bugly.crashreport.CrashReport;
 
 /**
  * Author: John
@@ -10,12 +11,16 @@ import com.john.breakpoint.greendao.helper.GreenDaoManager;
  * <p/>
  * Description:
  */
-public class DownloadApplication extends Application {
+public class MyApplication extends Application {
 
+    public static MyApplication application;
 
     @Override
     public void onCreate() {
         super.onCreate();
+        application=this;
         GreenDaoManager.initDatabase(this);
+        //bugly 测试时true
+        CrashReport.initCrashReport(getApplicationContext(), "a9a7c439c8", true);
     }
 }

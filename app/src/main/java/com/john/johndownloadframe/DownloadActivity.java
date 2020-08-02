@@ -63,9 +63,9 @@ public class DownloadActivity extends RxAppCompatActivity {
         externalFilesDir = getExternalFilesDir(null);
         //一张图片
         downloadInfo = new DownloadInfo();
-        downloadInfo.setFileName("app-download.png");
+        downloadInfo.setFileName("app-download.mp4");
         downloadInfo.setSavePathDir(externalFilesDir.getAbsolutePath());
-        downloadInfo.setDownloadUrl("http://94.191.50.122/demo/breakPointDownloadPng");
+        downloadInfo.setDownloadUrl("http://v2admin.app.eyes3d.com.cn/3d_demo/demo_01.mp4");
         //加载多任务测试数据apk
         loadDataList();
         //加载列表下载任务测试数据apk

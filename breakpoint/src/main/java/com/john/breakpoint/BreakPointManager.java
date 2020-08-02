@@ -3,6 +3,7 @@ package com.john.breakpoint;
 import android.app.Activity;
 import android.text.TextUtils;
 import android.util.Log;
+import android.widget.PopupWindow;
 import android.widget.Toast;
 
 
@@ -143,7 +144,12 @@ public class BreakPointManager {
         }
         final long startDownloadIndex = realDownloadInfo.getReadLength();
         //将头部下载信息传给服务端，让其解析
-        String range = "bytes=" + startDownloadIndex + "-";
+        String range;
+        if(startDownloadIndex!=0){
+             range = "bytes=" + startDownloadIndex + "-";
+        }else {
+            range=null;
+        }
         Log.e(TAG, "download: range is : " + range);
         //成功后更新数据库的值
         DownloadObserver<ResponseBody> downloadObserver = new DownloadObserver<ResponseBody>() {
@@ -285,7 +291,7 @@ public class BreakPointManager {
             if (readLength == 0) {
                 dbDownloadInfo.setTotalLength(total);
                 downloadInfoDao.update(dbDownloadInfo);
-                Log.d(TAG, "saveFile: this download length is " + FileSizeUtil.FormatFileSize(total));
+                Log.d(TAG, "saveFile: this download length is " + FileSizeUtil.FormatFileSize(total)+"|"+total);
             }
             is = body.byteStream();
             File dir = new File(dbDownloadInfo.getSavePathDir());
@@ -318,6 +324,7 @@ public class BreakPointManager {
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
+            e.printStackTrace();
             dbDownloadInfo.setReadLength(hasReadLen + sum);
             Log.e(TAG, "saveFile: saving Exception , try to save progress :" + (hasReadLen + sum));
             downloadInfoDao.update(dbDownloadInfo);//更新数据库进度

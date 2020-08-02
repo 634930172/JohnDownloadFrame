@@ -38,7 +38,7 @@ public class GreenDaoManager {
         //最基本DaoMaster.DevOpenHelper使用 开发阶段时用
         DaoMaster.DevOpenHelper mHelper = new DaoMaster.DevOpenHelper(context, "test-db", null);
         //自定义数据库版本控制 上线的时候用 将上面注销掉
-        //        GreenDaoOpenHelper mHelper = new GreenDaoOpenHelper(new GreenDaoContextHelper(context,DB_DIR), DB_NAME, null);
+//        GreenDaoOpenHelper mHelper = new GreenDaoOpenHelper(new GreenDaoContextHelper(context,DB_DIR), DB_NAME, null);
         db = mHelper.getWritableDatabase();
         // 注意：该数据库连接属于 DaoMaster，所以多个 Session 指的是相同的数据库连接。
         DaoMaster mDaoMaster = new DaoMaster(db);
